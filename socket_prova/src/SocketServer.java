@@ -30,5 +30,17 @@ public class SocketServer {
         }
         
     }
+    public static void dispose(){
+        try {
+            osw.close();
+            isr.close();
+            in.close();
+            bw.close();
+            out.close();
+        } catch (IOException e) {
+            
+            e.printStackTrace();
+        }
+    }
 
 }

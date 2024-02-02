@@ -3,6 +3,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 
 public class Server {
@@ -15,8 +16,12 @@ public class Server {
     Server(){
         resources = new HashMap<>();
         initResources();  
+        try {
+            ss = new ServerSocket(1069);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         waitForConnession();
-        
     }
 
     /**
@@ -44,13 +49,16 @@ public class Server {
      */
     private void waitForConnession(){
         try {
-            ss = new ServerSocket(1069);
+            ss.setSoTimeout(20000);
             cs = ss.accept();
             SocketServer.init(cs);
             System.out.println("connession succesful!");
             online();
-
-        } catch (IOException e) {
+        }
+        catch(SocketException e){
+            e.printStackTrace();
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
             
@@ -61,28 +69,29 @@ public class Server {
      * @param s
      */
     private void manageOutput(String s){
-
         SocketServer.out.write(s + '\n');
+        SocketServer.out.flush();
     }
 
     /**
      * listens for someone to send a message
      * @return "-1" if there is no message
      * @return "-2" if there is no user with the specified id
-     * @return "0" if there is an user with the specified id
+     * @return "-3" if the connection has been closed
+     * @return "the String linked to the id" if there is an user with the specified id
      */
     private String manageInput(){
+        String s = "";
         try {
-            String s = SocketServer.in.readLine();
-            if(s== null) return "-1";
+            s = SocketServer.in.readLine();
+            if(s == null) return "-1";
             else if(s.equals("")) return "-1";
             else if(resources.get(s) == null) return "-2";
-            System.out.println(s);
             
         } catch (IOException e) {
-            return "-1";
+            return "-3";
         }
-        return "0";
+        return s;
     }
 
     /**
@@ -92,20 +101,32 @@ public class Server {
     public void online(){
         System.out.println("online!");
         while(!cs.isClosed()){
+
             String input = manageInput();
-            if(input.equals("0")){
-                manageOutput(resources.get(input));
-            }
-            else if(input.equals("-2")){
+            
+            if(input.equals("-3")) break;
+
+            if(input.equals("-2")){
                 manageOutput("null");
+            }
+            
+            else if(!input.equals("-1")){
+                System.out.println("Messaggio ricevuto!");
+                manageOutput(resources.get(input));
             }
         }
         dispose();
     }
 
+    /**
+     * disposes resorces
+    */
     private void dispose(){
         try { 
+            System.out.println("Chiudo connessione!");
             cs.close();
+            cs = null;
+            SocketServer.dispose();
             waitForConnession();
 
         } catch (IOException e) {
