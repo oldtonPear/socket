@@ -1,53 +1,31 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
+package serverStuff;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketException;
-import java.util.HashMap;
 
-public class Server {
-    
-    private DatagramSocket ss;
-    private Socket cs;
+public class ServerLine implements Runnable{
+
+    private String nome;
     private byte[] buffer1;
     private DatagramPacket packet1;
-    String messaggio;
+    private String messaggio;
 
-    private HashMap<String, String> resources;
-
-    Server(){
-        resources = new HashMap<>();
-        initResources();  
-        try {
-            ss = new DatagramSocket(1069);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        waitForConnession();
+    
+    /**
+     * costruttore passando il nome del Thread
+     * @param nome
+     */
+    public ServerLine(String nome){
+        this.nome = nome;
     }
 
     /**
-     * initializes resorces from file
+     * compito del Thread
      */
-    private void initResources(){
-        try {
-            BufferedReader bw = new BufferedReader(new FileReader("NazioniCapitali.csv"));
-            String s = bw.readLine();
-            String[] arrS;
-            while (s != null) {
-                arrS = s.split(";");
-                if(resources.get(arrS[0]) == null){
-                    resources.put(arrS[0], arrS[1]);
-                }
-                s = bw.readLine();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    @Override
+    public void run() {
+        waitForConnession();
     }
 
     /**
@@ -57,7 +35,7 @@ public class Server {
         try {
             buffer1 = new byte[65536];
             packet1 = new DatagramPacket(buffer1, buffer1.length);
-            ss.receive(packet1);
+            Server.ss.receive(packet1);
             System.out.println("connession succesful!");
             online();
         }
@@ -69,6 +47,7 @@ public class Server {
         }
             
     }
+    
 
     /**
      * sends 's' to the connected client
