@@ -1,23 +1,29 @@
 package serverStuff;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.net.SocketException;
 
 public class ServerLine implements Runnable{
 
+    private DatagramSocket ss;
     private String nome;
     private byte[] buffer1;
     private DatagramPacket packet1;
-    private String messaggio;
 
-    
     /**
      * costruttore passando il nome del Thread
      * @param nome
      */
     public ServerLine(String nome){
         this.nome = nome;
+        try {
+            ss = new DatagramSocket(1069);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -35,7 +41,7 @@ public class ServerLine implements Runnable{
         try {
             buffer1 = new byte[65536];
             packet1 = new DatagramPacket(buffer1, buffer1.length);
-            Server.ss.receive(packet1);
+            ss.receive(packet1);
             System.out.println("connession succesful!");
             online();
         }
@@ -54,7 +60,7 @@ public class ServerLine implements Runnable{
      * @param s
      */
     private void manageOutput(String s){
-        byte[] buffer2 = messaggio.getBytes();
+        byte[] buffer2 = s.getBytes();
         InetAddress mitAddr = packet1.getAddress();
         int mittPort = packet1.getPort();
         DatagramPacket packet2 = new DatagramPacket(buffer2, buffer2.length, mitAddr, mittPort);
@@ -73,11 +79,12 @@ public class ServerLine implements Runnable{
      * @return "the String linked to the id" if there is an user with the specified id
      */
     private String manageInput(){
-        String s = "";
         byte[] data = packet1.getData();
-        messaggio = new String(data, 0, packet1.getLength());
+        String s = new String(data, 0, packet1.getLength());
+        System.out.println(s);
         if(s.equals("")) return "-1";
-        else if(resources.get(s) == null) return "-2";
+        else if(Server.resources.get(s) == null) return "-2";
+        
         return s;
     }
 
@@ -87,7 +94,7 @@ public class ServerLine implements Runnable{
      */
     public void online(){
         System.out.println("online!");
-        while(!cs.isClosed()){
+        while(!ss.isClosed()){
 
             String input = manageInput();
             
@@ -99,7 +106,7 @@ public class ServerLine implements Runnable{
             
             else if(!input.equals("-1")){
                 System.out.println("Messaggio ricevuto!");
-                manageOutput(resources.get(input));
+                manageOutput(Server.resources.get(input));
             }
         }
         dispose();
@@ -109,14 +116,9 @@ public class ServerLine implements Runnable{
      * disposes resorces
     */
     private void dispose(){
-        try { 
             System.out.println("Chiudo connessione!");
-            cs.close();
-            cs = null;
+            ss = null;
             waitForConnession();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        
     }
 }
