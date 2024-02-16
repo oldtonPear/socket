@@ -13,6 +13,9 @@ public class Server {
     private DatagramPacket packet1;
     protected static DatagramSocket ss;
 
+    /**
+     * creates the server initializing the DatagramSocket
+     */
     public Server(){
 
         try {
@@ -54,7 +57,7 @@ public class Server {
 
     /**
      * continues to listen and processed data when needed
-     * eventually calling manageOutput
+     * eventually calling initThread
      */
     public void online(){
         System.out.println("online!");
@@ -105,6 +108,10 @@ public class Server {
         }
     }
 
+    /**
+     * creates a new Thread to manage the output
+     * @param s the message that will be sent
+     */
     private void initThread(String s){
         ServerLine sl = new ServerLine(s, packet1.getAddress(), packet1.getPort());
         Thread th1 = new Thread(sl);
