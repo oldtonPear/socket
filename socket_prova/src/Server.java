@@ -46,6 +46,7 @@ public class Server {
 
     /**
      * waits until a connection is established
+     * or until the timer expires
      */
     private void waitForConnession(){
         try {
