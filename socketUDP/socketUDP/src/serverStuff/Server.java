@@ -33,7 +33,6 @@ public class Server {
      * listens for someone to send a message
      * @return "-1" if there is no message
      * @return "-2" if there is no user with the specified id
-     * @return "-3" if the connection has been closed
      * @return "the String linked to the id" if there is an user with the specified id
      */
     private String manageInput(){
@@ -64,8 +63,6 @@ public class Server {
         while(!ss.isClosed()){
 
             String input = manageInput();
-            
-            if(input.equals("-3")) break;
 
             if(input.equals("-2")){
                 initThread("null");
